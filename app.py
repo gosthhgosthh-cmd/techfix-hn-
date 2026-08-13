@@ -6,13 +6,13 @@ from streamlit_js_eval import get_geolocation
 
 # Configuración de la página
 st.set_page_config(
-    page_title="TechFix Honduras | Asistencia y Mapa GPS",
+    page_title="TechFix Honduras | Asistencia Técnica Inteligente",
     page_icon="💻",
     layout="wide"
 )
 
-# Configuración de la API de Gemini
-API_KEY = st.sidebar.text_input("🔑 Ingresa tu Gemini API Key:", type="password")
+# Cargar API Key automáticamente desde st.secrets o variable de entorno
+API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 
 if API_KEY:
     genai.configure(api_key=API_KEY)
@@ -26,13 +26,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("<h1 class='main-title'>💻 TechFix Honduras</h1>", unsafe_allow_html=True)
-st.markdown("<p class='sub-title'>Diagnóstico con IA y Geolocalización GPS de Tiendas Cerca de Ti</p>", unsafe_allow_html=True)
+st.markdown("<p class='sub-title'>Diagnóstico de Cómputo con Inteligencia Artificial y Geolocalización GPS</p>", unsafe_allow_html=True)
 st.divider()
 
 # Función para consultar a la IA
 def obtener_solucion_ia(categoria, problema_seleccionado, detalle_adicional=""):
     if not API_KEY:
-        return "⚠️ Por favor, ingresa tu **Gemini API Key** en la barra lateral para generar el diagnóstico dinámico."
+        return "⚠️ Error de configuración: La clave de la API de Gemini no ha sido configurada en el servidor."
     
     try:
         model = genai.GenerativeModel('gemini-1.5-flash')
@@ -42,10 +42,10 @@ def obtener_solucion_ia(categoria, problema_seleccionado, detalle_adicional=""):
         Problema seleccionado: {problema_seleccionado}.
         Detalles adicionales del usuario: {detalle_adicional if detalle_adicional else 'Ninguno'}.
 
-        Proporciona una respuesta estructurada en español:
+        Proporciona una respuesta estructurada y clara en español:
         1. 🔍 **Causas Probables**: 2-3 motivos de la falla.
         2. 🛠️ **Soluciones Paso a Paso**: Instrucciones claras de solución.
-        3. ⚠️ **Recomendación de Seguridad**: Si debe acudir a un taller.
+        3. ⚠️ **Recomendación de Seguridad**: Si debe acudir a un taller especializado.
         """
         response = model.generate_content(prompt)
         return response.text
@@ -74,7 +74,7 @@ with tab1:
             "Otro problema de Hardware..."
         ]
         seleccion_hw = st.selectbox("Problemas de Hardware:", opciones_hw, key="hw_select")
-        detalle_hw = st.text_input("Detalle adicional:", placeholder="Ej: Ocurrió tras una descarga eléctrica", key="hw_det")
+        detalle_hw = st.text_input("Detalle adicional:", placeholder="Ej: Ocurrió tras un bajón de luz", key="hw_det")
         btn_hw = st.button("Diagnosticar Hardware", type="primary", key="btn_hw")
 
     with col_sw:
@@ -125,12 +125,10 @@ with tab1:
 # ==========================================
 with tab2:
     st.header("Localización GPS y Tiendas Cercanas")
-    st.write("Presiona el botón para detectar tu ubicación exacta e interaccionar con el mapa.")
+    st.write("Visualiza en el mapa interactivo los centros de soporte técnico más cercanos.")
 
-    # Captura de geolocalización GPS desde el navegador
     loc = get_geolocation()
 
-    # Ubicación por defecto (Tegucigalpa) si no se activa el GPS
     lat_def = 14.0723
     lon_def = -87.1921
 
@@ -141,12 +139,10 @@ with tab2:
     else:
         lat_user = lat_def
         lon_user = lon_def
-        st.info("ℹ️ Haz clic en 'Obtener mi ubicación' si tu navegador lo solicita, o consulta las tiendas de la zona de referencia en el mapa.")
+        st.info("ℹ️ Mostrando ubicación de referencia en el mapa.")
 
-    # Creación del Mapa Interactivo con Folium
     m = folium.Map(location=[lat_user, lon_user], zoom_start=14)
 
-    # Marcador de la posición del usuario
     folium.Marker(
         [lat_user, lon_user],
         popup="Tu ubicación actual",
@@ -154,7 +150,6 @@ with tab2:
         icon=folium.Icon(color="red", icon="user", prefix="fa")
     ).add_to(m)
 
-    # Lista de tiendas y talleres cercanos registrados
     tiendas_cercanas = [
         {
             "nombre": "Computadoras PCI Honduras • City Mall TGU",
@@ -193,7 +188,6 @@ with tab2:
         }
     ]
 
-    # Agregar marcadores para cada tienda
     for t in tiendas_cercanas:
         folium.Marker(
             [t["lat"], t["lon"]],
@@ -202,10 +196,8 @@ with tab2:
             icon=folium.Icon(color="green", icon="wrench", prefix="fa")
         ).add_to(m)
 
-    # Renderizar el mapa dentro de Streamlit
     st_folium(m, width=1100, height=500)
 
-    # Despliegue en tarjetas de la lista de tiendas
     st.subheader("Talleres y Centros de Servicio Recomendados")
     cols = st.columns(2)
     for index, tienda in enumerate(tiendas_cercanas):
