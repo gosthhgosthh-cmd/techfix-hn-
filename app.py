@@ -1,163 +1,230 @@
 import streamlit as st
+import google.generativeai as genai
+import folium
+from streamlit_folium import st_folium
+from streamlit_js_eval import get_geolocation
 
-
+# Configuración de la página
 st.set_page_config(
-    page_title="TechFix Honduras | Asistencia Técnica",
+    page_title="TechFix Honduras | Asistencia y Mapa GPS",
     page_icon="💻",
     layout="wide"
 )
 
+# Configuración de la API de Gemini
+API_KEY = st.sidebar.text_input("🔑 Ingresa tu Gemini API Key:", type="password")
 
+if API_KEY:
+    genai.configure(api_key=API_KEY)
+
+# Estilos CSS
 st.markdown("""
     <style>
-    .main-title {
-        color: #2e7d32;
-        text-align: center;
-        font-weight: bold;
-    }
-    .sub-title {
-        text-align: center;
-        color: #555;
-    }
-    .stCard {
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 10px;
-        border-left: 5px solid #2e7d32;
-        margin-bottom: 15px;
-    }
+    .main-title { color: #2e7d32; text-align: center; font-weight: bold; }
+    .sub-title { text-align: center; color: #666; margin-bottom: 25px; }
     </style>
 """, unsafe_allow_html=True)
 
-
 st.markdown("<h1 class='main-title'>💻 TechFix Honduras</h1>", unsafe_allow_html=True)
-st.markdown("<p class='sub-title'>Plataforma de Diagnóstico Técnico de Cómputo y Directorio de Soporte</p>", unsafe_allow_html=True)
+st.markdown("<p class='sub-title'>Diagnóstico con IA y Geolocalización GPS de Tiendas Cerca de Ti</p>", unsafe_allow_html=True)
 st.divider()
 
-tab1, tab2, tab3 = st.tabs(["🛠️ Servicios", "🔍 Diagnóstico Interactivo", "🏬 Tiendas en Honduras"])
+# Función para consultar a la IA
+def obtener_solucion_ia(categoria, problema_seleccionado, detalle_adicional=""):
+    if not API_KEY:
+        return "⚠️ Por favor, ingresa tu **Gemini API Key** en la barra lateral para generar el diagnóstico dinámico."
+    
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = f"""
+        Actúa como un técnico experto en soporte informático de hardware y software.
+        El usuario presenta un problema en la categoría: {categoria}.
+        Problema seleccionado: {problema_seleccionado}.
+        Detalles adicionales del usuario: {detalle_adicional if detalle_adicional else 'Ninguno'}.
 
+        Proporciona una respuesta estructurada en español:
+        1. 🔍 **Causas Probables**: 2-3 motivos de la falla.
+        2. 🛠️ **Soluciones Paso a Paso**: Instrucciones claras de solución.
+        3. ⚠️ **Recomendación de Seguridad**: Si debe acudir a un taller.
+        """
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Error al conectar con la IA: {str(e)}"
 
+# Pestañas de la aplicación
+tab1, tab2, tab3 = st.tabs(["🛠️ Diagnóstico con IA", "🗺️ Tiendas Cerca de Mí (GPS)", "🏢 Directorio Nacional"])
+
+# ==========================================
+# SECCIÓN 1: DIAGNÓSTICO CON IA
+# ==========================================
 with tab1:
-    st.header("Nuestros Servicios de Soporte Técnico")
-    col1, col2, col3 = st.columns(3)
+    st.header("Selecciona la falla que presenta tu equipo")
+    col_hw, col_sw, col_rec = st.columns(3)
 
-    with col1:
-        st.subheader("🔧 Mantenimiento Hardware")
-        st.write("Limpieza profunda, cambio de pasta térmica, reparación de componentes y actualizaciones de RAM o SSD.")
+    with col_hw:
+        st.subheader("🔧 Hardware")
+        opciones_hw = [
+            "Seleccionar una opción...",
+            "El equipo enciende pero la pantalla se queda negra",
+            "La computadora se apaga sola a los pocos minutos de encender",
+            "Hace un ruido fuerte o sobrecalentamiento excesivo",
+            "No reconoce la memoria RAM o emite pitidos al arrancar",
+            "El disco duro hace ruidos raros (clicks) o no detecta almacenamiento",
+            "Otro problema de Hardware..."
+        ]
+        seleccion_hw = st.selectbox("Problemas de Hardware:", opciones_hw, key="hw_select")
+        detalle_hw = st.text_input("Detalle adicional:", placeholder="Ej: Ocurrió tras una descarga eléctrica", key="hw_det")
+        btn_hw = st.button("Diagnosticar Hardware", type="primary", key="btn_hw")
 
-    with col2:
-        st.subheader("💻 Soporte de Software")
-        st.write("Eliminación de virus/malware, formateo, optimización del sistema operativo e instalación de programas.")
+    with col_sw:
+        st.subheader("💻 Software")
+        opciones_sw = [
+            "Seleccionar una opción...",
+            "Pantalla azul de la muerte (BSOD) en Windows",
+            "El sistema está extremadamente lento / Disco al 100%",
+            "Infección por virus, malware o publicidad molesta (pop-ups)",
+            "El equipo no inicia el sistema operativo (Bucle de reinicios)",
+            "Error al actualizar drivers o controladores de video",
+            "Otro problema de Software..."
+        ]
+        seleccion_sw = st.selectbox("Problemas de Software:", opciones_sw, key="sw_select")
+        detalle_sw = st.text_input("Detalle adicional:", placeholder="Ej: Código 0x80070002", key="sw_det")
+        btn_sw = st.button("Diagnosticar Software", type="primary", key="btn_sw")
 
-    with col3:
+    with col_rec:
         st.subheader("🛡️ Recuperación de Datos")
-        st.write("Diagnóstico y rescate de información en discos duros dañados, SSDs o unidades USB con fallas lógicas.")
+        opciones_rec = [
+            "Seleccionar una opción...",
+            "Formateé el disco duro o borré archivos por accidente",
+            "La memoria USB o tarjeta SD pide formatear para poder usarse",
+            "El disco duro externo no aparece en 'Mi Equipo'",
+            "Archivos o carpetas dañadas / no se pueden abrir",
+            "Otro problema de Datos..."
+        ]
+        seleccion_rec = st.selectbox("Problemas de Datos:", opciones_rec, key="rec_select")
+        detalle_rec = st.text_input("Detalle adicional:", placeholder="Ej: Memoria USB Kingston de 32GB", key="rec_det")
+        btn_rec = st.button("Diagnosticar Datos", type="primary", key="btn_rec")
 
+    st.divider()
 
+    if btn_hw and seleccion_hw != "Seleccionar una opción...":
+        with st.spinner("Analizando falla de Hardware..."):
+            st.markdown(obtener_solucion_ia("Mantenimiento de Hardware", seleccion_hw, detalle_hw))
+
+    elif btn_sw and seleccion_sw != "Seleccionar una opción...":
+        with st.spinner("Analizando falla de Software..."):
+            st.markdown(obtener_solucion_ia("Soporte de Software", seleccion_sw, detalle_sw))
+
+    elif btn_rec and seleccion_rec != "Seleccionar una opción...":
+        with st.spinner("Analizando caso de Datos..."):
+            st.markdown(obtener_solucion_ia("Recuperación de Datos", seleccion_rec, detalle_rec))
+
+# ==========================================
+# SECCIÓN 2: MAPA GPS Y TIENDAS CERCANAS
+# ==========================================
 with tab2:
-    st.header("Diagnóstico de Averías en Tiempo Real")
-    st.write("Selecciona una categoría o escribe los síntomas que presenta tu equipo para obtener posibles causas y soluciones.")
+    st.header("Localización GPS y Tiendas Cercanas")
+    st.write("Presiona el botón para detectar tu ubicación exacta e interaccionar con el mapa.")
 
+    # Captura de geolocalización GPS desde el navegador
+    loc = get_geolocation()
 
-    base_datos_problemas = [
+    # Ubicación por defecto (Tegucigalpa) si no se activa el GPS
+    lat_def = 14.0723
+    lon_def = -87.1921
+
+    if loc and 'coords' in loc:
+        lat_user = loc['coords']['latitude']
+        lon_user = loc['coords']['longitude']
+        st.success(f"📍 Ubicación GPS obtenida: **Latitud {lat_user:.4f}, Longitud {lon_user:.4f}**")
+    else:
+        lat_user = lat_def
+        lon_user = lon_def
+        st.info("ℹ️ Haz clic en 'Obtener mi ubicación' si tu navegador lo solicita, o consulta las tiendas de la zona de referencia en el mapa.")
+
+    # Creación del Mapa Interactivo con Folium
+    m = folium.Map(location=[lat_user, lon_user], zoom_start=14)
+
+    # Marcador de la posición del usuario
+    folium.Marker(
+        [lat_user, lon_user],
+        popup="Tu ubicación actual",
+        tooltip="Estás aquí",
+        icon=folium.Icon(color="red", icon="user", prefix="fa")
+    ).add_to(m)
+
+    # Lista de tiendas y talleres cercanos registrados
+    tiendas_cercanas = [
         {
-            "categoria": "Hardware",
-            "titulo": "Equipo enciende pero no da video (Pantalla negra)",
-            "sintomas": "pantalla negra no da video luces encienden pitidos",
-            "causas": ["Falso contacto o suciedad en los módulos RAM.", "Falla en la tarjeta gráfica o GPU integrada.", "Cable HDMI/DisplayPort defectuoso."],
-            "soluciones": ["Limpiar los contactos de la RAM con una goma de borrar suave.", "Probar con otro cable o puerto de video.", "Verificar secuencias de pitidos al encender."]
+            "nombre": "Computadoras PCI Honduras • City Mall TGU",
+            "lat": 14.0682,
+            "lon": -87.2171,
+            "tel": "+504 3322-7677",
+            "direccion": "City Mall Tegucigalpa, Entrada Principal, Sótano 1"
         },
         {
-            "categoria": "Hardware",
-            "titulo": "Computadora extremadamente lenta o disco al 100%",
-            "sintomas": "lenta disco 100% congelada tarda en cargar",
-            "causas": ["Disco duro mecánico (HDD) envejecido o degradado.", "Falta de memoria RAM suficiente.", "Sobrecalentamiento por acumulación de polvo."],
-            "soluciones": ["Actualizar la unidad de almacenamiento a un SSD.", "Realizar mantenimiento físico y cambio de pasta térmica.", "Aumentar la memoria RAM del equipo."]
+            "nombre": "AVACO - Reparación Computadoras Mac y PC",
+            "lat": 14.0850,
+            "lon": -87.1710,
+            "tel": "+504 9976-7735",
+            "direccion": "Residencial Guaymuras, Tegucigalpa"
         },
         {
-            "categoria": "Software",
-            "titulo": "Pantallazo Azul de la Muerte (BSOD) en Windows",
-            "sintomas": "pantalla azul bsod reinicios inesperados error",
-            "causas": ["Controladores (drivers) desactualizados o corruptos.", "Archivos dañados del sistema operativo.", "Incompatibilidad tras una actualización."],
-            "soluciones": ["Iniciar en Modo Seguro y actualizar drivers de video.", "Ejecutar en la terminal de administrador: sfc /scannow", "Desinstalar las últimas actualizaciones de Windows."]
+            "nombre": "Bortech84",
+            "lat": 14.0750,
+            "lon": -87.2050,
+            "tel": "+504 8785-3527",
+            "direccion": "Comayagüela, Francisco Morazán"
         },
         {
-            "categoria": "Software",
-            "titulo": "Infección por Malware / Ventanas emergentes",
-            "sintomas": "virus malware publicidad ventanas emergentes lentitud",
-            "causas": ["Descarga de programas de fuentes no oficiales.", "Extensiones maliciosas instaladas en el navegador."],
-            "soluciones": ["Ejecutar un escaneo profundo con Windows Defender o Malwarebytes.", "Revisar y eliminar extensiones desconocidas en el navegador.", "Restablecer la configuración predeterminada del navegador."]
+            "nombre": "Multisistemas",
+            "lat": 14.0710,
+            "lon": -87.1950,
+            "tel": "+504 2280-2939",
+            "direccion": "Tegucigalpa, Francisco Morazán"
+        },
+        {
+            "nombre": "WNET",
+            "lat": 14.0730,
+            "lon": -87.1980,
+            "tel": "+504 3143-5296",
+            "direccion": "Tegucigalpa, Francisco Morazán"
         }
     ]
 
-  
-    col_busqueda, col_filtro = st.columns([3, 1])
-    with col_busqueda:
-        busqueda = st.text_input("🔍 Escribe el problema o síntoma:", placeholder="Ej: pantalla azul, lenta, virus...")
-    with col_filtro:
-        filtro_cat = st.selectbox("Categoría:", ["Todas", "Hardware", "Software"])
+    # Agregar marcadores para cada tienda
+    for t in tiendas_cercanas:
+        folium.Marker(
+            [t["lat"], t["lon"]],
+            popup=f"<b>{t['nombre']}</b><br>Tel: {t['tel']}<br>{t['direccion']}",
+            tooltip=t["nombre"],
+            icon=folium.Icon(color="green", icon="wrench", prefix="fa")
+        ).add_to(m)
 
-    resultados = []
-    for item in base_datos_problemas:
-        cumple_cat = (filtro_cat == "Todas") or (item["categoria"] == filtro_cat)
-        coincide_texto = (busqueda.lower() in item["titulo"].lower()) or (busqueda.lower() in item["sintomas"].lower())
-        
-        if cumple_cat and coincide_texto:
-            resultados.append(item)
+    # Renderizar el mapa dentro de Streamlit
+    st_folium(m, width=1100, height=500)
 
-    st.subheader(f"Resultados encontrados ({len(resultados)})")
-    if resultados:
-        for res in resultados:
-            with st.container():
-                st.markdown(f"### ⚠️ {res['titulo']}")
-                st.caption(f"Categoría: **{res['categoria']}**")
-                
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.write("**Causas probables:**")
-                    for causa in res["causas"]:
-                        st.write(f"- {causa}")
-                with c2:
-                    st.write("**Soluciones recomendadas:**")
-                    for solucion in res["soluciones"]:
-                        st.write(f"- {solucion}")
-                st.divider()
-    else:
-        st.warning("No se encontraron coincidencias para tu búsqueda. Intenta con términos como 'lenta', 'RAM' o 'virus'.")
+    # Despliegue en tarjetas de la lista de tiendas
+    st.subheader("Talleres y Centros de Servicio Recomendados")
+    cols = st.columns(2)
+    for index, tienda in enumerate(tiendas_cercanas):
+        with cols[index % 2]:
+            st.markdown(f"""
+            ### 🏬 [{tienda['nombre']}](https://maps.google.com/?q={tienda['lat']},{tienda['lon']})
+            * 📍 **Dirección:** {tienda['direccion']}
+            * 📞 **Teléfono:** `{tienda['tel']}`
+            """)
 
-
+# ==========================================
+# SECCIÓN 3: DIRECTORIO NACIONAL
+# ==========================================
 with tab3:
-    st.header("Centros de Servicio y Tiendas de Cómputo en Honduras")
-    st.write("Directorio de contacto con tiendas y talleres de soporte especializado.")
-
-    col_t1, col_t2 = st.columns(2)
-
-    with col_t1:
-        st.info("""
-        ### Jetstereo (Soporte Técnico)
-        * **Ubicaciones:** Tegucigalpa, San Pedro Sula y principales ciudades.
-        * **Teléfono:** +504 2276-0000
-        * **Servicios:** Garantías, repuestos originales, diagnóstico de laptops y equipos multimarca.
-        """)
-
-        st.info("""
-        ### SYCOM (Sistemas y Computadoras)
-        * **Ubicación:** Tegucigalpa, M.D.C.
-        * **Teléfono:** +504 2232-1111
-        * **Servicios:** Ensamblaje de PC, venta de componentes internos, tarjetas madre y almacenamiento.
-        """)
-
-    with col_t2:
-        st.info("""
-        ### Diunsa (Servicio y Garantías)
-        * **Ubicaciones:** San Pedro Sula, Tegucigalpa, La Ceiba.
-        * **Teléfono:** +504 2516-2000
-        * **Servicios:** Soporte de garantías, mantenimiento preventivo de laptops y accesorios.
-        """)
-
-        st.info("""
-        ### RadioShack Honduras
-        * **Ubicación:** Cobertura a nivel nacional.
-        * **Teléfono:** +504 2280-3000
-        * **Servicios:** Accesorios de conectividad, fuentes de poder, adaptadores y componentes generales.
-        """)
+    st.header("Directorio de Cadenas Principales en Honduras")
+    c1, c2 = st.columns(2)
+    with c1:
+        st.info("### Jetstereo\n* **Tel:** +504 2276-0000\n* **Cobertura:** Tegucigalpa, SPS, La Ceiba\n* **Especialidad:** Garantías y repuestos de laptops.")
+        st.info("### SYCOM\n* **Tel:** +504 2232-1111\n* **Cobertura:** Tegucigalpa\n* **Especialidad:** Componentes de PC, fuentes y tarjetas de video.")
+    with c2:
+        st.info("### Diunsa\n* **Tel:** +504 2516-2000\n* **Cobertura:** San Pedro Sula, Tegucigalpa\n* **Especialidad:** Mantenimiento preventivo y repuestos.")
+        st.info("### RadioShack\n* **Tel:** +504 2280-3000\n* **Cobertura:** Nivel Nacional\n* **Especialidad:** Cables, adaptadores y discos externos.")
