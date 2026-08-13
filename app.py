@@ -11,11 +11,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# Coloca aquí tu API Key de Google Gemini directamente entre comillas:
-DEFAULT_API_KEY = "TU_GEMINI_API_KEY_AQUI"
-
-# Intenta obtener la clave desde st.secrets si existe; si no, usa la clave integrada por defecto
-API_KEY = st.secrets.get("GEMINI_API_KEY", DEFAULT_API_KEY)
+# Cargar API Key automáticamente desde los Secrets de Streamlit o variable de entorno
+API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 
 if API_KEY:
     genai.configure(api_key=API_KEY)
@@ -34,11 +31,13 @@ st.divider()
 
 # Función para consultar a la IA
 def obtener_solucion_ia(categoria, problema_seleccionado, detalle_adicional=""):
-    if not API_KEY or API_KEY == "TU_GEMINI_API_KEY_AQUI":
-        return "⚠️ **Error:** Por favor coloca tu clave de Gemini dentro de la variable `DEFAULT_API_KEY` en el código de `app.py`."
+    if not API_KEY:
+        return "⚠️ Error de configuración: La clave de la API de Gemini no ha sido configurada en los Secrets de Streamlit."
     
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        # Se utiliza 'gemini-pro' para máxima compatibilidad con las versiones v1/v1beta de la API
+        model = genai.GenerativeModel('gemini-pro')
+        
         prompt = f"""
         Actúa como un técnico experto en soporte informático de hardware y software.
         El usuario presenta un problema en la categoría: {categoria}.
