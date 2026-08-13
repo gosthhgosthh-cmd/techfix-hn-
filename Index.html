@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechFix Honduras | Asistencia Técnica & Diagnóstico</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Ionicons para iconos atractivos -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+  <!-- NAVEGACIÓN -->
+  <header>
+    <div class="logo">
+      <ion-icon name="hardware-chip-outline"></ion-icon>
+      <span>TechFix HN</span>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#servicios">Servicios</a></li>
+        <li><a href="#diagnostico">Diagnóstico Interactivo</a></li>
+        <li><a href="#tiendas">Tiendas en Honduras</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- SECCIÓN HERO -->
+    <section class="hero">
+      <h1>Soluciones Rápidas para tus Problemas de Cómputo</h1>
+      <p>Diagnostica fallas de hardware y software al instante o encuentra talleres autorizados en Honduras.</p>
+      <a href="#diagnostico" class="btn-primary">Iniciar Diagnóstico Gratuito</a>
+    </section>
+
+    <!-- SECCIÓN 1: SERVICIOS -->
+    <section id="servicios" class="section">
+      <h2 class="section-title">Nuestros Servicios de Soporte</h2>
+      <div class="services-grid">
+        <div class="service-card">
+          <ion-icon name="build-outline"></ion-icon>
+          <h3>Mantenimiento de Hardware</h3>
+          <p>Limpieza profunda, cambio de pasta térmica, reparación de placas base y actualización de componentes (RAM, SSD).</p>
+        </div>
+        <div class="service-card">
+          <ion-icon name="code-working-outline"></ion-icon>
+          <h3>Soporte de Software</h3>
+          <p>Eliminación de virus/malware, optimización del sistema operativo, formateo e instalación de programas esenciales.</p>
+        </div>
+        <div class="service-card">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <h3>Recuperación de Datos</h3>
+          <p>Diagnóstico y rescate de información en discos duros dañados, memorias USB o SSDs con fallas lógicas.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 2: DIAGNÓSTICO INTERACTIVO -->
+    <section id="diagnostico" class="section bg-alt">
+      <h2 class="section-title">Diagnóstico de Averías en Tiempo Real</h2>
+      <p class="section-subtitle">Selecciona los síntomas o escribe qué problema presenta tu equipo para obtener posibles causas y soluciones.</p>
+
+      <div class="diag-container">
+        <!-- Buscador / Filtro rápido -->
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Ejemplo: pantalla azul, lenteja, no enciende...">
+          <button id="btnSearch" class="btn-secondary">
+            <ion-icon name="search-outline"></ion-icon> Buscar
+          </button>
+        </div>
+
+        <!-- Botones de categoría -->
+        <div class="category-buttons">
+          <button class="btn-filter active" data-filter="all">Todos</button>
+          <button class="btn-filter" data-filter="hardware">Hardware</button>
+          <button class="btn-filter" data-filter="software">Software</button>
+        </div>
+
+        <!-- Contenedor de Resultados Dinámicos -->
+        <div id="resultsContainer" class="results-grid">
+          <!-- Generado dinámicamente con JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: TIENDAS Y CENTROS DE SOPORTE EN HONDURAS -->
+    <section id="tiendas" class="section">
+      <h2 class="section-title">Centros de Servicio y Tiendas en Honduras</h2>
+      <p class="section-subtitle">Ponte en contacto con técnicos y tiendas especializadas cerca de ti.</p>
+
+      <div class="stores-grid">
+        <div class="store-card">
+          <h3>Jetstereo (Servicio Técnico)</h3>
+          <p><ion-icon name="location-outline"></ion-icon> Tegucigalpa / San Pedro Sula</p>
+          <p><ion-icon name="call-outline"></ion-icon> <strong>+504 2276-0000</strong></p>
+          <p class="store-desc">Soporte técnico autorizado para laptops, marcas principales y repuestos originales.</p>
+        </div>
+
+        <div class="store-card">
+          <h3>Diunsa (Soporte & Garantías)</h3>
+          <p><ion-icon name="location-outline"></ion-icon> Cofradía / Tegucigalpa / La Ceiba</p>
+          <p><ion-icon name="call-outline"></ion-icon> <strong>+504 2516-2000</strong></p>
+          <p class="store-desc">Atención a garantías de marcas globales y diagnóstico de componentes.</p>
+        </div>
+
+        <div class="store-card">
+          <h3>SYCOM (Sistemas y Computadoras)</h3>
+          <p><ion-icon name="location-outline"></ion-icon> Tegucigalpa, M.D.C.</p>
+          <p><ion-icon name="call-outline"></ion-icon> <strong>+504 2232-1111</strong></p>
+          <p class="store-desc">Venta de repuestos de hardware, ensamblaje de PC y reparación a nivel de componente.</p>
+        </div>
+
+        <div class="store-card">
+          <h3>RadioShack Honduras</h3>
+          <p><ion-icon name="location-outline"></ion-icon> Cobertura Nacional</p>
+          <p><ion-icon name="call-outline"></ion-icon> <strong>+504 2280-3000</strong></p>
+          <p class="store-desc">Accesorios, conectividad, adaptadores y componentes informáticos generales.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 TechFix Honduras — Proyecto Web Estático</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
